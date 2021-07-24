@@ -1,0 +1,135 @@
+Q1------------------------
+ What do different columns in the output of EXPLAIN mean? What possible values can those have? What is the meaning of those values?
+
+The Explain command is being used by a database designer so that he can better visualise and analyse the database which would help in the designing of the queries. The designer can better visualise how the query processing works and it is also useful in the analysis of the slow queries.
+An Explain command is followed by a Select command and therefore when you fire this query, the following parameters are returned.
+
+id: This is an integer parameter that is assigned by the server starting with value 1. This value would indicate that the order in which the query optimizer decided to process the table. 
+
+select_type: The type of query. Will be one of the following:
+	SIMPLE – Simple query without any unions or subqueries
+	PRIMARY – Outermost SELECT query
+	UNION – Second or later SELECT query of a union
+	DEPENDENT UNION – Second or later SELECT query of a union which is dependent on an outer query
+	SUBQUERY – First SELECT query in a subquery
+	DEPENDENT SUBQUERY – First SELECT query in a subquery, dependent on an outer query
+	DERIVED – SELECT query used as a table in a FROM clause
+
+Table – The table name or alias
+
+Type – The access type (sometimes called the join type). This is the single most important piece of information given, as it indicates how efficiently the server was able to retrieve the requested rows of data. I cover each of the access types in detail below.
+
+Possible_keys – Indexes which the server could possibly use to retrieve the requested rows from this table. Prior to version 5.0, MySQL was only able to use a single index per table in a query. 5.0 added the index_merge access type which allows multiple indexes to be used in certain cases.
+
+Key – The index selected (if any) for this table. The index used is chosen based on the estimated amount of work the query optimizer thinks using each index will require. The current query optimizer attempts to minimize disk reads. A NULL value here means no index will be used, indicating a full table scan. You can use the FORCE INDEX, USE INDEX, and IGNORE INDEX query hints to guide the optimizer.
+
+key_len – The number of bytes of the chosen index that the server will actually use. Mostly useful for determining how many parts of a multi-part index the server used.
+
+rows – Estimated number of rows the optimizer thinks the server will have to examine in order to retrieve the requested rows. This number is based on table statistics and index selectivity.
+
+Extra- Additional information pertaining to this table.
+	DISTINCT – Server is able to perform an optimization where it will stop searching for more rows for the current row combination after it has found the first matching row
+	NOT EXISTS – Server is able to do a LEFT JOIN optimization where it will not examine more rows in this table for the current row combination after it finds one row that matches the JOIN criteria.
+	RANGE CHECKED FOR EACH RECORD – Server found no good index to use, but checks indexes for each row. Slow, but faster than a full table scan.
+	USING FILESORT – Server will need to do an extra pass to sort the rows.
+	USING INDEX – Server is able to return rows directly from the index instead of doing an additional seek to read the actual rows. Generally good news.
+	USING TEMPORARY – Server will need to create a temporary table to hold results. Often occurs with differing GROUP BY and ORDER BY columns.
+	USING WHERE – Server is using values in the WHERE clause to limit returned rows.
+
+Q2-------------------------
+We use EXPLAIN to optimize slow SQL queries used in our application. Lets say we have a comments table in our application that has a foreign key, user_id, referencing to users table. EXPLAINing the query that finds all the comments made by a user gives us following result.
+
+2.1 The value under 'rows' column in the output of EXPLAIN query and SELECT query after it are same. What does it mean?
+
+The rows which are shown in the explain command is the estimate value of the rows which the query optimizer or parser would think are needed to process the query. It is just an estimate and it may or may not be correct all the time. This number has been derived from the table stats and index selection.
+The count(id) command would start from the beginning to the end counting the rows.
+
+2.2 Is the SELECT query optimal? If no, how do we optimize it?
+
+No SELECT query is not optimal. Select is one of the necessary statements which are often used in the database. So, here are some of the ways that you can consider while optimizing the Select queries:
+a. Using Indexes: This is one of the sure shot ways to improve the performance. The indexes are generally defined on those columns which are frequently used in your queries. The record seeking is much faster as compared to the full table scan first. This speeds up the query execution.
+b. Query Performance Optimization: The Query Performance must be seen and analyses using the EXPLAIN keyword. This word is place in front of the query and would describe the course of execution of the query and the number of rows that would be needed to execute the query and deliver the result set sucesfully.
+c. Adjusting System Variables: The inbuilt system variables also help in the optimization of the queries. The fine tuning of these variable also go in the long way in the optimization of the Select Statements.
+
+Q3---------------------------
+In Rails world, we have someting called polymorphic associations (http://guides.rubyonrails.org/association_basics.html#polymorphic-associations). Lets say in our web application, we can let users comment on photographs and articles.
+
+3.1 We decide to index columns in comments table to optimize the SELECT query. What column(s) will you index in which order?
+
+We can use the folowing guidelines in determining what column is good to be indexed:
+Index columns that appear in search conditions.
+Index columns that appear in join conditions.
+Do not index columns that appear only in the SELECT clause.
+Do not index columns that contain only a few different values.
+Specify prefixes for indexes on columns that contain large string values.
+Create only the indexes that you need.
+
+The columns for indexing are selected based on the fact how much frequently it will be used in featching the result or in search. Since in this case, we have only 2 values for commendable_type ad commendable_id, these both are not recommended to be choosen for an index.
+In more select statements, we would be searching comments from different users using user_id. So, user_id should be indexed to optimize SELECT query.
+
+Q4-----------------------------
+4.1 EXPLAIN a SELECT query against one of your databases which employs an INNER JOIN between two tables. What does the output look like? What does the values under different columns mean? Do you get only one row in EXPLAIN's output?
+
+mysql> EXPLAIN SELECT location FROM sandwiches INNER JOIN tastes USING(filling) where
+tastes.name = 'Jones';
++----+-------------+------------+------------+------+---------------+------+---------+------+------+----------+----------------------------------------------------+
+| id | select_type | table      | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra                                              |
++----+-------------+------------+------------+------+---------------+------+---------+------+------+----------+----------------------------------------------------+
+|  1 | SIMPLE      | tastes     | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    7 |    14.29 | Using where                                        |
+|  1 | SIMPLE      | sandwiches | NULL       | ALL  | NULL          | NULL | NULL    | NULL |   10 |    10.00 | Using where; Using join buffer (Block Nested Loop) |
++----+-------------+------------+------------+------+---------------+------+---------+------+------+----------+----------------------------------------------------+
+2 rows in set, 0 warning (0.00 sec)
+
+id is 1 -> sequential number of select query.
+select_type is SIMPLE -> It is simple select (not using union or subquery).
+rows is 7 and 10 for the two table -> these are the number of rows in different tables to go through to execute the select query.
+filtered -> shows percentage of rows filtered after using conditions.
+EXtra:
+Using where -> using where condition to execute the query.
+Using join buffer -> Tables from earlier joins are read in portions into the join buffer, and then their rows are used from the buffer to perform the join with the current table. (Block Nested Loop) indicates use of the Block Nested-Loop algorithm.
+
+We are getting 2 rows for two different tables.
+
+4.2 Form the same select query in above question using a subquery instead of a JOIN. What does the EXPLAIN output look like now? Which query is better and why?
+
+mysql> EXPLAIN SELECT location FROM sandwiches WHERE filling IN (SELECT filling FROM tastes where name = 'Jones');
++----+--------------+-------------+------------+------+---------------+------+---------+------+------+----------+----------------------------------------------------+
+| id | select_type  | table       | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra                                              |
++----+--------------+-------------+------------+------+---------------+------+---------+------+------+----------+----------------------------------------------------+
+|  1 | SIMPLE       | <subquery2> | NULL       | ALL  | NULL          | NULL | NULL    | NULL | NULL |     0.00 | NULL                                               |
+|  1 | SIMPLE       | sandwiches  | NULL       | ALL  | NULL          | NULL | NULL    | NULL |   10 |    10.00 | Using where; Using join buffer (Block Nested Loop) |
+|  2 | MATERIALIZED | tastes      | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    7 |    14.29 | Using where                                        |
++----+--------------+-------------+------------+------+---------------+------+---------+------+------+----------+----------------------------------------------------+
+3 rows in set, 0 warning (0.00 sec)
+
+We are getting 3 rows for two different tables and one extra for the subquery.
+
+We are getting approx same results since we are not using any indexes.
+Trying after using a index on name.
+
+mysql> create index name on tastes (name);
+Query OK, 0 rows affected (0.03 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> EXPLAIN SELECT location FROM sandwiches INNER JOIN tastes USING(filling) where tastes.name = 'Jones';
++----+-------------+------------+------------+------+---------------+------+---------+-------+------+----------+----------------------------------------------------+
+| id | select_type | table      | partitions | type | possible_keys | key  | key_len | ref   | rows | filtered | Extra                                              |
++----+-------------+------------+------------+------+---------------+------+---------+-------+------+----------+----------------------------------------------------+
+|  1 | SIMPLE      | tastes     | NULL       | ref  | name          | name | 42      | const |    1 |   100.00 | NULL                                               |
+|  1 | SIMPLE      | sandwiches | NULL       | ALL  | NULL          | NULL | NULL    | NULL  |   10 |    10.00 | Using where; Using join buffer (Block Nested Loop) |
++----+-------------+------------+------------+------+---------------+------+---------+-------+------+----------+----------------------------------------------------+
+2 rows in set, 1 warning (0.00 sec)
+
+mysql> EXPLAIN SELECT location FROM sandwiches WHERE filling IN (SELECT filling FROM tastes where name = 'Jones');
++----+--------------+-------------+------------+------+---------------+------+---------+-------+------+----------+----------------------------------------------------+
+| id | select_type  | table       | partitions | type | possible_keys | key  | key_len | ref   | rows | filtered | Extra                                              |
++----+--------------+-------------+------------+------+---------------+------+---------+-------+------+----------+----------------------------------------------------+
+|  1 | SIMPLE       | <subquery2> | NULL       | ALL  | NULL          | NULL | NULL    | NULL  | NULL |   100.00 | NULL                                               |
+|  1 | SIMPLE       | sandwiches  | NULL       | ALL  | NULL          | NULL | NULL    | NULL  |   10 |    10.00 | Using where; Using join buffer (Block Nested Loop) |
+|  2 | MATERIALIZED | tastes      | NULL       | ref  | name          | name | 42      | const |    1 |   100.00 | NULL                                               |
++----+--------------+-------------+------------+------+---------------+------+---------+-------+------+----------+----------------------------------------------------+
+3 rows in set, 1 warning (0.00 sec)
+
+Select query got optimmize after using index on name since in rows now 10*1 = 10 rows are used to execute the query.
+
+From both the methods, join is better, since subquery doing another process which is not required;
