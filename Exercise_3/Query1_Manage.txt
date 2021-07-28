@@ -1,0 +1,291 @@
+1.) Manage(create, update, delete) categories, articles, comments, and users.
+
+# Operations On Articles
+
+mysql> Select * from Articles;
++----+----------------+---------------+---------+
+| id | title          | categories_id | user_id |
++----+----------------+---------------+---------+
+|  1 | ML in Home     |             1 |       1 |
+|  2 | AI in Car      |             2 |       4 |
+|  3 | AWS in World   |             5 |       3 |
+|  4 | DSA in CS      |             4 |       2 |
+|  5 | DBMS in Office |             3 |       5 |
+|  6 | AI in Home     |             2 |       1 |
+|  7 | AWS in Clouds  |             5 |       5 |
++----+----------------+---------------+---------+
+7 rows in set (0.00 sec)
+
+mysql> Alter Table Articles Add Column Extra Varchar(25);
+Query OK, 0 rows affected (0.05 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> Desc Articles;
++---------------+-------------+------+-----+---------+----------------+
+| Field         | Type        | Null | Key | Default | Extra          |
++---------------+-------------+------+-----+---------+----------------+
+| id            | int         | NO   | PRI | NULL    | auto_increment |
+| title         | varchar(25) | NO   |     | NULL    |                |
+| categories_id | int         | NO   | MUL | NULL    |                |
+| user_id       | int         | NO   | MUL | NULL    |                |
+| Extra         | varchar(25) | YES  |     | NULL    |                |
++---------------+-------------+------+-----+---------+----------------+
+5 rows in set (0.01 sec)
+
+mysql> Update Articles Set Extra = 'My Article' where user_id = 1;
+Query OK, 2 rows affected (0.01 sec)
+Rows matched: 2  Changed: 2  Warnings: 0
+
+mysql> Select * from Articles;
++----+----------------+---------------+---------+------------+
+| id | title          | categories_id | user_id | Extra      |
++----+----------------+---------------+---------+------------+
+|  1 | ML in Home     |             1 |       1 | My Article |
+|  2 | AI in Car      |             2 |       4 | NULL       |
+|  3 | AWS in World   |             5 |       3 | NULL       |
+|  4 | DSA in CS      |             4 |       2 | NULL       |
+|  5 | DBMS in Office |             3 |       5 | NULL       |
+|  6 | AI in Home     |             2 |       1 | My Article |
+|  7 | AWS in Clouds  |             5 |       5 | NULL       |
++----+----------------+---------------+---------+------------+
+7 rows in set (0.00 sec)
+
+mysql> Insert into Articles Values (8, 'Extra', 1, 1, 'Extra Article');
+Query OK, 1 row affected (0.01 sec)
+
+mysql> Select * from Articles;
++----+----------------+---------------+---------+---------------+
+| id | title          | categories_id | user_id | Extra         |
++----+----------------+---------------+---------+---------------+
+|  1 | ML in Home     |             1 |       1 | My Article    |
+|  2 | AI in Car      |             2 |       4 | NULL          |
+|  3 | AWS in World   |             5 |       3 | NULL          |
+|  4 | DSA in CS      |             4 |       2 | NULL          |
+|  5 | DBMS in Office |             3 |       5 | NULL          |
+|  6 | AI in Home     |             2 |       1 | My Article    |
+|  7 | AWS in Clouds  |             5 |       5 | NULL          |
+|  8 | Extra          |             1 |       1 | Extra Article |
++----+----------------+---------------+---------+---------------+
+8 rows in set (0.00 sec)
+
+mysql> Delete from Articles where title = 'Extra';
+Query OK, 1 row affected (0.01 sec)
+
+mysql> Select * from Articles;
++----+----------------+---------------+---------+------------+
+| id | title          | categories_id | user_id | Extra      |
++----+----------------+---------------+---------+------------+
+|  1 | ML in Home     |             1 |       1 | My Article |
+|  2 | AI in Car      |             2 |       4 | NULL       |
+|  3 | AWS in World   |             5 |       3 | NULL       |
+|  4 | DSA in CS      |             4 |       2 | NULL       |
+|  5 | DBMS in Office |             3 |       5 | NULL       |
+|  6 | AI in Home     |             2 |       1 | My Article |
+|  7 | AWS in Clouds  |             5 |       5 | NULL       |
++----+----------------+---------------+---------+------------+
+7 rows in set (0.00 sec)
+
+mysql> Alter Table Articles Drop Column Extra;
+Query OK, 0 rows affected (0.23 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> Desc Articles;
++---------------+-------------+------+-----+---------+----------------+
+| Field         | Type        | Null | Key | Default | Extra          |
++---------------+-------------+------+-----+---------+----------------+
+| id            | int         | NO   | PRI | NULL    | auto_increment |
+| title         | varchar(25) | NO   |     | NULL    |                |
+| categories_id | int         | NO   | MUL | NULL    |                |
+| user_id       | int         | NO   | MUL | NULL    |                |
++---------------+-------------+------+-----+---------+----------------+
+4 rows in set (0.00 sec)
+
+mysql> Select * from Articles;
++----+----------------+---------------+---------+
+| id | title          | categories_id | user_id |
++----+----------------+---------------+---------+
+|  1 | ML in Home     |             1 |       1 |
+|  2 | AI in Car      |             2 |       4 |
+|  3 | AWS in World   |             5 |       3 |
+|  4 | DSA in CS      |             4 |       2 |
+|  5 | DBMS in Office |             3 |       5 |
+|  6 | AI in Home     |             2 |       1 |
+|  7 | AWS in Clouds  |             5 |       5 |
++----+----------------+---------------+---------+
+7 rows in set (0.00 sec)
+
+# Operations On Categories
+
+mysql> Select * from Categories;
++----+------+
+| id | name |
++----+------+
+|  1 | ML   |
+|  2 | AI   |
+|  3 | DBMS |
+|  4 | DSA  |
+|  5 | AWS  |
++----+------+
+5 rows in set (0.00 sec)
+
+mysql> Insert Into Categories Values(6, 'IoT');
+Query OK, 1 row affected (0.01 sec)
+
+mysql> Select * from Categories;
++----+------+
+| id | name |
++----+------+
+|  1 | ML   |
+|  2 | AI   |
+|  3 | DBMS |
+|  4 | DSA  |
+|  5 | AWS  |
+|  6 | IoT  |
++----+------+
+6 rows in set (0.00 sec)
+
+mysql> Delete from Categories where id = 6;
+Query OK, 1 row affected (0.01 sec)
+
+mysql> Select * from Categories;
++----+------+
+| id | name |
++----+------+
+|  1 | ML   |
+|  2 | AI   |
+|  3 | DBMS |
+|  4 | DSA  |
+|  5 | AWS  |
++----+------+
+5 rows in set (0.00 sec)
+
+# Operations On Comments
+
+mysql> Select * from Comments;
++----+------------+------------+---------+
+| id | comment    | article_id | user_id |
++----+------------+------------+---------+
+|  1 | Wow        |          1 |       1 |
+|  2 | Awesome    |          1 |       1 |
+|  3 | Amazing    |          1 |       2 |
+|  4 | Nice       |          1 |       3 |
+|  5 | Keep it up |          2 |       3 |
+|  6 | Good       |          2 |       3 |
+|  7 | Beautiful  |          4 |       3 |
+|  8 | Pretty     |          4 |       4 |
+|  9 | Average    |          5 |       5 |
+| 10 | Good       |          6 |       4 |
++----+------------+------------+---------+
+10 rows in set (0.00 sec)
+
+mysql> Alter Table Comments Add Rating Tinyint NOT NULL DEFAULT 5;
+Query OK, 0 rows affected (0.03 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> Select * from Comments;
++----+------------+------------+---------+--------+
+| id | comment    | article_id | user_id | Rating |
++----+------------+------------+---------+--------+
+|  1 | Wow        |          1 |       1 |      5 |
+|  2 | Awesome    |          1 |       1 |      5 |
+|  3 | Amazing    |          1 |       2 |      5 |
+|  4 | Nice       |          1 |       3 |      5 |
+|  5 | Keep it up |          2 |       3 |      5 |
+|  6 | Good       |          2 |       3 |      5 |
+|  7 | Beautiful  |          4 |       3 |      5 |
+|  8 | Pretty     |          4 |       4 |      5 |
+|  9 | Average    |          5 |       5 |      5 |
+| 10 | Good       |          6 |       4 |      5 |
++----+------------+------------+---------+--------+
+10 rows in set (0.01 sec)
+
+mysql> Update Comments Set Rating = 3 where Comment = 'Keep it up';
+Query OK, 1 row affected (0.01 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> Select * from Comments;
++----+------------+------------+---------+--------+
+| id | comment    | article_id | user_id | Rating |
++----+------------+------------+---------+--------+
+|  1 | Wow        |          1 |       1 |      5 |
+|  2 | Awesome    |          1 |       1 |      5 |
+|  3 | Amazing    |          1 |       2 |      5 |
+|  4 | Nice       |          1 |       3 |      5 |
+|  5 | Keep it up |          2 |       3 |      3 |
+|  6 | Good       |          2 |       3 |      5 |
+|  7 | Beautiful  |          4 |       3 |      5 |
+|  8 | Pretty     |          4 |       4 |      5 |
+|  9 | Average    |          5 |       5 |      5 |
+| 10 | Good       |          6 |       4 |      5 |
++----+------------+------------+---------+--------+
+10 rows in set (0.00 sec)
+
+mysql> Alter Table Comments Drop Rating;
+Query OK, 0 rows affected (0.19 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> Select * from Comments;
++----+------------+------------+---------+
+| id | comment    | article_id | user_id |
++----+------------+------------+---------+
+|  1 | Wow        |          1 |       1 |
+|  2 | Awesome    |          1 |       1 |
+|  3 | Amazing    |          1 |       2 |
+|  4 | Nice       |          1 |       3 |
+|  5 | Keep it up |          2 |       3 |
+|  6 | Good       |          2 |       3 |
+|  7 | Beautiful  |          4 |       3 |
+|  8 | Pretty     |          4 |       4 |
+|  9 | Average    |          5 |       5 |
+| 10 | Good       |          6 |       4 |
++----+------------+------------+---------+
+10 rows in set (0.00 sec)
+
+# Operations On Users
+
+mysql> Select * from Users;
++----+----------+--------+
+| id | name     | type   |
++----+----------+--------+
+|  1 | Sparsh   | Admin  |
+|  2 | Naman    | Normal |
+|  3 | Utsav    | Admin  |
+|  4 | Aman     | Normal |
+|  5 | Abhishek | Normal |
++----+----------+--------+
+5 rows in set (0.01 sec)
+
+mysql> Insert into Users Values(6, 'Parth', 'Normal');
+Query OK, 1 row affected (0.00 sec)
+
+mysql> Select * from Users;
++----+----------+--------+
+| id | name     | type   |
++----+----------+--------+
+|  1 | Sparsh   | Admin  |
+|  2 | Naman    | Normal |
+|  3 | Utsav    | Admin  |
+|  4 | Aman     | Normal |
+|  5 | Abhishek | Normal |
+|  6 | Parth    | Normal |
++----+----------+--------+
+6 rows in set (0.00 sec)
+
+mysql> Update Users Set type = 'Admin' where name = 'Abhishek';
+Query OK, 1 row affected (0.01 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> Delete from Users where id > 5;
+Query OK, 1 row affected (0.01 sec)
+
+mysql> Select * from Users;
++----+----------+--------+
+| id | name     | type   |
++----+----------+--------+
+|  1 | Sparsh   | Admin  |
+|  2 | Naman    | Normal |
+|  3 | Utsav    | Admin  |
+|  4 | Aman     | Normal |
+|  5 | Abhishek | Admin  |
++----+----------+--------+
+5 rows in set (0.00 sec)

@@ -1,0 +1,188 @@
+# Selecting From All Tables
+
+mysql> Select * from Articles;
++----+----------------+---------------+---------+
+| id | title          | categories_id | user_id |
++----+----------------+---------------+---------+
+|  1 | ML in Home     |             1 |       1 |
+|  2 | AI in Car      |             2 |       4 |
+|  3 | AWS in World   |             5 |       3 |
+|  4 | DSA in CS      |             4 |       2 |
+|  5 | DBMS in Office |             3 |       5 |
+|  6 | AI in Home     |             2 |       1 |
+|  7 | AWS in Clouds  |             5 |       5 |
++----+----------------+---------------+---------+
+7 rows in set (0.00 sec)
+
+mysql> Select * from Categories;
++----+------+
+| id | name |
++----+------+
+|  1 | ML   |
+|  2 | AI   |
+|  3 | DBMS |
+|  4 | DSA  |
+|  5 | AWS  |
++----+------+
+5 rows in set (0.00 sec)
+
+mysql> Select * from Comments;
++----+------------+------------+---------+
+| id | comment    | article_id | user_id |
++----+------------+------------+---------+
+|  1 | Wow        |          1 |       1 |
+|  2 | Awesome    |          1 |       1 |
+|  3 | Amazing    |          1 |       2 |
+|  4 | Nice       |          1 |       3 |
+|  5 | Keep it up |          2 |       3 |
+|  6 | Good       |          2 |       3 |
+|  7 | Beautiful  |          4 |       3 |
+|  8 | Pretty     |          4 |       4 |
+|  9 | Average    |          5 |       5 |
+| 10 | Good       |          6 |       4 |
++----+------------+------------+---------+
+10 rows in set (0.00 sec)
+
+mysql> Select * from Users;
++----+----------+--------+
+| id | name     | type   |
++----+----------+--------+
+|  1 | Sparsh   | Admin  |
+|  2 | Naman    | Normal |
+|  3 | Utsav    | Admin  |
+|  4 | Aman     | Normal |
+|  5 | Abhishek | Normal |
++----+----------+--------+
+5 rows in set (0.00 sec)
+
+2.)
+a.) select all articles whose author's name is user3
+
+mysql> Select title from Articles 
+    -> join Users on Articles.user_id = Users.id 
+    -> where Users.name = 'Sparsh';
++------------+
+| title      |
++------------+
+| ML in Home |
+| AI in Home |
++------------+
+2 rows in set (0.00 sec)
+
+b.) Do this exercise using variable also
+
+mysql> Set @user_name = 'Sparsh';
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> Select title from Articles join Users on Articles.user_id = Users.id where Users.name = @user_name;
++------------+
+| title      |
++------------+
+| ML in Home |
+| AI in Home |
++------------+
+2 rows in set (0.00 sec)
+
+3.)
+a.) For all the articles being selected above, select all the articles and also the comments associated with those articles in a single query
+
+mysql> Select Articles.title, Comments.comment 
+    -> from Articles 
+    -> join Users on Articles.user_id = Users.id 
+    -> join Comments on Articles.id = Comments.article_id 
+    -> where Users.name = 'Sparsh';
++------------+---------+
+| title      | comment |
++------------+---------+
+| ML in Home | Wow     |
+| ML in Home | Awesome |
+| ML in Home | Amazing |
+| ML in Home | Nice    |
+| AI in Home | Good    |
++------------+---------+
+5 rows in set (0.00 sec)
+
+b.) Do this using subquery also
+
+mysql> Select 
+    -> (Select title from Articles where id = article_id) as Title, 
+    -> comment as Comments
+    -> from Comments 
+    -> where article_id in (
+    -> Select id from Articles 
+    -> where user_id = ( Select id from Users where name = 'Sparsh' )
+    -> );
++------------+----------+
+| Title      | Comments |
++------------+----------+
+| ML in Home | Wow      |
+| ML in Home | Awesome  |
+| ML in Home | Amazing  |
+| ML in Home | Nice     |
+| AI in Home | Good     |
++------------+----------+
+5 rows in set (0.01 sec)
+
+
+4.)
+a.) Write a query to select all articles which do not have any comments
+
+mysql> Select Articles.title 
+    -> from Articles 
+    -> left join Comments on Articles.id = Comments.article_id
+    -> where Comments.article_id is NULL;
++---------------+
+| title         |
++---------------+
+| AWS in World  |
+| AWS in Clouds |
++---------------+
+2 rows in set (0.00 sec)
+
+b.) Do using subquery also
+
+mysql> Select title 
+    -> from Articles 
+    -> where id NOT IN (
+    -> Select distinct article_id from Comments
+    -> );
++---------------+
+| title         |
++---------------+
+| AWS in World  |
+| AWS in Clouds |
++---------------+
+2 rows in set (0.00 sec)
+
+5.) Write a query to select article which has maximum comments
+
+mysql> Select Articles.title, count(Comments.id) as max_comments
+    -> from Articles 
+    -> join Comments on Articles.id = Comments.article_id 
+    -> group by Comments.article_id 
+    -> order by count(Comments.id) desc 
+    -> limit 1;
++------------+--------------+
+| title      | max_comments |
++------------+--------------+
+| ML in Home |            4 |
++------------+--------------+
+1 row in set (0.00 sec)
+
+6.) Write a query to select article which does not have more than one comment by the same user ( do this using left join and group by )
+
+mysql> Select Articles.title 
+    -> from Articles 
+    -> left join Comments on Articles.id = Comments.article_id 
+    -> group by Articles.title
+    -> having count(Comments.user_id) - count(distinct Comments.user_id) = 0;
++----------------+
+| title          |
++----------------+
+| AI in Home     |
+| AWS in Clouds  |
+| AWS in World   |
+| DBMS in Office |
+| DSA in CS      |
++----------------+
+5 rows in set (0.00 sec)
