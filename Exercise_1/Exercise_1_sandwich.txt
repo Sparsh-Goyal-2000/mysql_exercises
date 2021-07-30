@@ -1,0 +1,167 @@
+mysql> -- Creating Table Tastes
+mysql> 
+mysql> CREATE TABLE Tastes(
+    -> Name VARCHAR(10) NOT NULL,
+    -> Filling VARCHAR(10) NOT NULL,
+    -> PRIMARY KEY(Name, Filling)
+    -> );
+Query OK, 0 rows affected (0.04 sec)
+
+mysql> 
+mysql> -- Inserting Data Into Table Tastes
+mysql> 
+mysql> INSERT INTO Tastes VALUES
+    -> ('Brown', 'Turkey'),
+    -> ('Brown', 'Beef'),
+    -> ('Brown', 'Ham'),
+    -> ('Green', 'Beef'),
+    -> ('Jones', 'Cheese'),
+    -> ('Green', 'Turkey'),
+    -> ('Green', 'Cheese');
+Query OK, 7 rows affected (0.01 sec)
+Records: 7  Duplicates: 0  Warnings: 0
+
+mysql> 
+mysql> -- Creating Table Locations
+mysql> 
+mysql> CREATE TABLE Locations(
+    -> Lname VARCHAR(10) NOT NULL,
+    -> Phone INT(10) NOT NULL,
+    -> Address VARCHAR(15),
+    -> PRIMARY KEY (Lname)
+    -> );
+Query OK, 0 rows affected, 1 warning (0.06 sec)
+
+mysql> 
+mysql> -- Inserting Data Into Table Locations
+mysql> 
+mysql> INSERT INTO Locations VALUES
+    -> ('Lincoln', 6834523, 'Lincoln Place'),
+    -> ('O\'Neill\'s', 6742134, 'Parse St'),
+    -> ('Old Nag', 7678132, 'Dame St'),
+    -> ('Buttery', 7023421, 'College St');
+Query OK, 4 rows affected (0.01 sec)
+Records: 4  Duplicates: 0  Warnings: 0
+
+mysql> 
+mysql> -- Creating Table Sandwiches
+mysql> 
+mysql> CREATE TABLE Sandwiches(
+    -> Location VARCHAR(10) NOT NULL,
+    -> Bread VARCHAR(10) NOT NULL,
+    -> Filling VARCHAR(10) NOT NULL,
+    -> Price FLOAT NOT NULL,
+    -> PRIMARY KEY(Location, Bread, Filling),
+    -> FOREIGN KEY(Location) REFERENCES Locations(Lname)
+    -> );
+Query OK, 0 rows affected (0.08 sec)
+
+mysql> 
+mysql> -- Inserting Data Into Table Sandwiches
+mysql> 
+mysql> INSERT INTO Sandwiches VALUES
+    -> ('Lincoln', 'Rye', 'Ham', 1.25),
+    -> ('O\'Neill\'s', 'White', 'Cheese', 1.20),
+    -> ('O\'Neill\'s', 'White', 'Ham', 1.25),
+    -> ('Old Nag', 'Rye', 'Beef', 1.35),
+    -> ('Buttery', 'White', 'Cheese', 1.00),
+    -> ('O\'Neill\'s', 'White', 'Turkey', 1.35),
+    -> ('Buttery', 'White', 'Ham', 1.10),
+    -> ('Lincoln', 'Rye', 'Beef', 1.35),
+    -> ('Lincoln', 'White', 'Ham', 1.30),
+    -> ('Old Nag', 'Rye', 'Ham', 1.40);
+Query OK, 10 rows affected (0.01 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql> 
+mysql> -- Selecting All Data From ALl Tables
+mysql> 
+mysql> SELECT * FROM Tastes;
++-------+---------+
+| Name  | Filling |
++-------+---------+
+| Brown | Beef    |
+| Brown | Ham     |
+| Brown | Turkey  |
+| Green | Beef    |
+| Green | Cheese  |
+| Green | Turkey  |
+| Jones | Cheese  |
++-------+---------+
+7 rows in set (0.00 sec)
+
+mysql> SELECT * FROM Locations;
++-----------+---------+---------------+
+| Lname     | Phone   | Address       |
++-----------+---------+---------------+
+| Buttery   | 7023421 | College St    |
+| Lincoln   | 6834523 | Lincoln Place |
+| O'Neill's | 6742134 | Parse St      |
+| Old Nag   | 7678132 | Dame St       |
++-----------+---------+---------------+
+4 rows in set (0.01 sec)
+
+mysql> SELECT * FROM Sandwiches;
++-----------+-------+---------+-------+
+| Location  | Bread | Filling | Price |
++-----------+-------+---------+-------+
+| Buttery   | White | Cheese  |     1 |
+| Buttery   | White | Ham     |   1.1 |
+| Lincoln   | Rye   | Beef    |  1.35 |
+| Lincoln   | Rye   | Ham     |  1.25 |
+| Lincoln   | White | Ham     |   1.3 |
+| O'Neill's | White | Cheese  |   1.2 |
+| O'Neill's | White | Ham     |  1.25 |
+| O'Neill's | White | Turkey  |  1.35 |
+| Old Nag   | Rye   | Beef    |  1.35 |
+| Old Nag   | Rye   | Ham     |   1.4 |
++-----------+-------+---------+-------+
+10 rows in set (0.00 sec)
+
+mysql> 
+mysql> -- i) Places where Jones can eat using a nested subquery
+mysql> 
+mysql> SELECT Location FROM Sandwiches 
+    -> WHERE Filling IN (
+    -> SELECT Filling FROM Tastes 
+    -> WHERE Name = 'Jones'
+    -> );
++-----------+
+| Location  |
++-----------+
+| Buttery   |
+| O'Neill's |
++-----------+
+2 rows in set (0.00 sec)
+
+mysql> 
+mysql> -- ii) Places where Jones can eat without using a nested subquery
+mysql>     
+mysql> SELECT Location FROM Sandwiches
+    -> JOIN Tastes USING(Filling)
+    -> WHERE Name = 'Jones';
++-----------+
+| Location  |
++-----------+
+| Buttery   |
+| O'Neill's |
++-----------+
+2 rows in set (0.00 sec)
+
+mysql> 
+mysql> -- iii) For each location, the number of people who can eat there
+mysql> 
+mysql> SELECT Location, COUNT(DISTINCT Name) 
+    -> FROM Sandwiches 
+    -> JOIN Tastes USING(Filling) 
+    -> GROUP BY Location;
++-----------+----------------------+
+| Location  | COUNT(DISTINCT Name) |
++-----------+----------------------+
+| Buttery   |                    3 |
+| Lincoln   |                    2 |
+| O'Neill's |                    3 |
+| Old Nag   |                    2 |
++-----------+----------------------+
+4 rows in set (0.00 sec)
+
