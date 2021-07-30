@@ -1,0 +1,171 @@
+mysql> -- Creating Table Branch
+mysql> 
+mysql> Create Table Branch(
+    -> BCode Varchar(3) PRIMARY KEY,
+    -> Librarian Varchar(20) NOT NULL,
+    -> Address Varchar(20) NOT NULL
+    -> );
+Query OK, 0 rows affected (0.03 sec)
+
+mysql> 
+mysql> -- Inserting Data Into Table Branch
+mysql> 
+mysql> Insert Into Branch Values
+    -> ('B1', 'John Smith', '2 Anglesea Rd'),
+    -> ('B2', 'Mary Jones', '34 Pearse St'),
+    -> ('B3', 'Francis Owens', 'Grange X');
+Query OK, 3 rows affected (0.00 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql> 
+mysql> -- Creating Table Titles
+mysql> 
+mysql> Create Table Titles(
+    -> Title Varchar(25) PRIMARY KEY,
+    -> Author Varchar(25) NOT NULL,
+    -> Publisher Varchar(25)
+    -> );
+Query OK, 0 rows affected (0.04 sec)
+
+mysql> 
+mysql> -- Inserting Data Into Table Titles
+mysql> 
+mysql> Insert Into Titles Values
+    -> ('susannah', 'ann brown', 'macmillan'),
+    -> ('how to fish', 'amy fly', 'stop press'),
+    -> ('a history of dublin', 'david little', 'wiley'),
+    -> ('computers', 'blaise pascal', 'applewoods'),
+    -> ('the wife', 'ann brown', 'macmillan');
+Query OK, 5 rows affected (0.01 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+
+mysql> 
+mysql> -- Creating Table Holdings
+mysql> 
+mysql> Create Table Holdings (
+    -> Branch Varchar(3),
+    -> Title Varchar(25),
+    -> `#copies` Int NOT NULL,
+    -> PRIMARY KEY(Branch, Title),
+    -> FOREIGN KEY (Branch) REFERENCES Branch(BCode),
+    -> FOREIGN KEY (Title) REFERENCES Titles(Title)
+    -> );
+Query OK, 0 rows affected (0.03 sec)
+
+mysql> 
+mysql> -- Inserting Data Into Table Holdings
+mysql> 
+mysql> Insert Into Holdings Values
+    -> ('B1', 'susannah', 3),
+    -> ('B1', 'how to fish', 2),
+    -> ('B1', 'a history of dublin', 1),
+    -> ('B2', 'how to fish', 4),
+    -> ('B2', 'computers', 2),
+    -> ('B2', 'the wife', 3),
+    -> ('B3', 'a history of dublin', 1),
+    -> ('B3', 'computers', 4),
+    -> ('B3', 'susannah', 3),
+    -> ('B3', 'the wife', 1);
+Query OK, 10 rows affected (0.00 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql> 
+mysql> -- Selecting All Data From All Tables
+mysql> 
+mysql> Select * From Branch;
++-------+---------------+---------------+
+| BCode | Librarian     | Address       |
++-------+---------------+---------------+
+| B1    | John Smith    | 2 Anglesea Rd |
+| B2    | Mary Jones    | 34 Pearse St  |
+| B3    | Francis Owens | Grange X      |
++-------+---------------+---------------+
+3 rows in set (0.00 sec)
+
+mysql> Select * From Titles;
++---------------------+---------------+------------+
+| Title               | Author        | Publisher  |
++---------------------+---------------+------------+
+| a history of dublin | david little  | wiley      |
+| computers           | blaise pascal | applewoods |
+| how to fish         | amy fly       | stop press |
+| susannah            | ann brown     | macmillan  |
+| the wife            | ann brown     | macmillan  |
++---------------------+---------------+------------+
+5 rows in set (0.00 sec)
+
+mysql> Select * From Holdings;
++--------+---------------------+---------+
+| Branch | Title               | #copies |
++--------+---------------------+---------+
+| B1     | a history of dublin |       1 |
+| B1     | how to fish         |       2 |
+| B1     | susannah            |       3 |
+| B2     | computers           |       2 |
+| B2     | how to fish         |       4 |
+| B2     | the wife            |       3 |
+| B3     | a history of dublin |       1 |
+| B3     | computers           |       4 |
+| B3     | susannah            |       3 |
+| B3     | the wife            |       1 |
++--------+---------------------+---------+
+10 rows in set (0.00 sec)
+
+mysql> 
+mysql> -- i) Name of all library books published by Macmillan
+mysql> 
+mysql> Select Title From Titles Where Publisher = 'Macmillan';
++----------+
+| Title    |
++----------+
+| susannah |
+| the wife |
++----------+
+2 rows in set (0.00 sec)
+
+mysql> 
+mysql> -- ii) Branches that held any books by Ann Brown using nested subquery
+mysql> 
+mysql> Select DISTINCT Branch From Holdings 
+    -> Where Title In (
+    -> Select Title From Titles
+    -> Where Author = 'Ann Brown'
+    -> );
++--------+
+| Branch |
++--------+
+| B1     |
+| B3     |
+| B2     |
++--------+
+3 rows in set (0.00 sec)
+
+mysql> 
+mysql> -- iii) Branches that held any books by Ann Brown without using nested subquery 
+mysql> 
+mysql> Select DISTINCT Holdings.Branch 
+    -> From Holdings 
+    -> Join Titles Using(Title) 
+    -> Where Titles.Author = 'Ann Brown';
++--------+
+| Branch |
++--------+
+| B1     |
+| B3     |
+| B2     |
++--------+
+3 rows in set (0.00 sec)
+
+mysql> 
+mysql> -- iv) Total number of books help at each branch
+mysql> 
+mysql> Select Branch, Sum(`#copies`) As No_of_books From Holdings Group By Branch;
++--------+-------------+
+| Branch | No_of_books |
++--------+-------------+
+| B1     |           6 |
+| B2     |           9 |
+| B3     |           9 |
++--------+-------------+
+3 rows in set (0.00 sec)
+
